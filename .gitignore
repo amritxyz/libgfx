@@ -1,0 +1,8 @@
+*.o
+*.out
+*.obj
+*.so
+demo
+build/
+bin/
+obj/
