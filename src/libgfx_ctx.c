@@ -1,25 +1,42 @@
+/*
+ * libgfx - A simple graphics library built on top of OpenGL
+ * Copyright (C) 2026 amritxyz
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, version 3 of the License.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 #include <GL/gl.h>
+#include <GLFW/glfw3.h>
+
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 
-#include <stdbool.h>
-#include <GLFW/glfw3.h>
+#include "../include/gfx.h"
 
-#include "../include/graphics.h"
-
-typedef struct graphics_context_t {
+typedef struct libgfx {
 	GLFWwindow *window;
 	int width;
 	int height;
-} graphics_context_t;
+} libgfx;
 
 static void glfw_error_callback(int error, const char *description)
 {
 	fprintf(stderr, "GLFW Error %d: %s\n", error, description);
 }
 
-graphics_context_t
-*graphics_init(int width, int height, const char *title)
+libgfx
+*gfx_init(int width, int height, const char *title)
 {
 	glfwSetErrorCallback(glfw_error_callback);
 
@@ -51,9 +68,9 @@ graphics_context_t
 	glfwSwapInterval(1);
 
 	/* Allocate context struct */
-	graphics_context_t *ctx = malloc(sizeof(graphics_context_t));
+	libgfx *ctx = malloc(sizeof(libgfx));
 	if (!ctx) {
-		fprintf(stderr, "Failed to allocate graphics context\n");
+		fprintf(stderr, "Failed to allocate gfx context\n");
 		glfwDestroyWindow(window);
 		glfwTerminate();
 		return NULL;
@@ -74,7 +91,7 @@ graphics_context_t
 }
 
 void
-graphics_terminate(graphics_context_t *ctx)
+gfx_terminate(libgfx *ctx)
 {
 	if (!ctx) return;
 
@@ -87,14 +104,14 @@ graphics_terminate(graphics_context_t *ctx)
 }
 
 bool
-graphics_is_running(graphics_context_t *ctx)
+gfx_is_running(libgfx *ctx)
 {
 	if (!ctx || !ctx->window) return false;
 	return !glfwWindowShouldClose(ctx->window);
 }
 
 void
-graphics_clear(graphics_context_t *ctx, Color background)
+gfx_clear(libgfx *ctx, Color background)
 {
 	if (!ctx) return;
 
@@ -103,7 +120,7 @@ graphics_clear(graphics_context_t *ctx, Color background)
 }
 
 void
-graphics_present(graphics_context_t *ctx)
+gfx_present(libgfx *ctx)
 {
 	if (!ctx || !ctx->window) return;
 

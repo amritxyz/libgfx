@@ -24,29 +24,33 @@ endif
 
 SRCDIR = src
 OBJDIR = obj
+INCDIR = include
 SOURCES = $(wildcard $(SRCDIR)/*.c)
+HEADERS = $(wildcard $(INCDIR)/*.h)
 OBJECTS = $(SOURCES:$(SRCDIR)/%.c=$(OBJDIR)/%.o)
-TARGET = libgraphics.$(SO_EXT)
+TARGET = libgfx.$(SO_EXT)
+DEMO = demo
 
 all: $(OBJDIR) $(TARGET)
 
 $(OBJDIR):
 	mkdir -p $(OBJDIR)
 
-$(OBJDIR)/%.o: $(SRCDIR)/%.c
+$(OBJDIR)/%.o: $(SRCDIR)/%.c $(HEADERS) | $(OBJDIR)
 	$(CC) $(CFLAGS) -c $< -o $@
 
 $(TARGET): $(OBJECTS)
 	$(CC) -shared $(OBJECTS) -o $@ $(LDFLAGS)
 
-example: $(TARGET)
-	$(CC) $(CFLAGS) -o demo examples/demo.c -L. -lgraphics $(LDFLAGS)
+$(DEMO): $(TARGET) examples/demo.c $(HEADERS)
+	$(CC) $(CFLAGS) -o $(DEMO) examples/demo.c -L. -lgfx $(LDFLAGS)
+
+example: $(DEMO)
 
 clean:
-	rm -rf $(OBJDIR) $(TARGET) demo
+	rm -rf $(OBJDIR) $(TARGET) $(DEMO)
 
-run: $(TARGET)
-	$(CC) $(CFLAGS) -o demo examples/demo.c -L. -lgraphics $(LDFLAGS)
-	LD_LIBRARY_PATH=. ./demo
+run: $(DEMO)
+	LD_LIBRARY_PATH=. ./$(DEMO)
 
-.PHONY: all clean example
+.PHONY: all clean example run

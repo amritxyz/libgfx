@@ -1,8 +1,9 @@
+/* See LICENSE file for copyright and license details. */
 #pragma once
 
 #include <GL/gl.h>
 
-#include "graphics.h"
+#include "gfx.h"
 
 typedef struct {
 	GLuint program;
