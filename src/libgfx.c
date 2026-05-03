@@ -22,7 +22,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "../include/gfx.h"
+#include "../include/libgfx.h"
 
 typedef struct libgfx {
 	GLFWwindow *window;
@@ -115,7 +115,8 @@ gfx_clear(libgfx *ctx, Color background)
 {
 	if (!ctx) return;
 
-	glClearColor(background.r, background.g, background.b, background.a);
+	float rgba[4] = COLOR_TO_FLOAT(background);
+	glClearColor(rgba[0], rgba[1], rgba[2], rgba[3]);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 

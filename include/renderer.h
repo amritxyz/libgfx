@@ -3,7 +3,7 @@
 
 #include <GL/gl.h>
 
-#include "gfx.h"
+#include "libgfx.h"
 
 typedef struct {
 	GLuint program;

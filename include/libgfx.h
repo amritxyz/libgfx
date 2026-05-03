@@ -3,6 +3,13 @@
 
 #include <stdbool.h>
 
+#define COLOR_TO_FLOAT(c) { \
+	(c).r / 255.0f, \
+	(c).g / 255.0f, \
+	(c).b / 255.0f, \
+	(c).a / 255.0f, \
+}
+
 #define BLACK	(Color){ 0, 0, 0, 255 }
 #define BLANK	(Color){ 0, 0, 0, 0 }
 #define BLUE	(Color){ 0, 0, 255, 255 }
