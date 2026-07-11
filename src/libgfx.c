@@ -286,56 +286,6 @@ draw_line_v(libgfx *ctx, Vec2 start, Vec2 end, Color color)
 	draw_line(ctx, start.x, start.y, end.x, end.y, color);
 }
 
-// void
-// draw_polygon(libgfx *ctx, Vec2 *points, int point_count, Color fill,
-// 	     Color border, float border_width)
-// {
-// 	if (!ctx || point_count < 3) return;
-//
-// 	/* Stack allocate vertex data: x, y, r, g, b, a */
-// 	float vertices[point_count * 6];
-// 	for (int i = 0; i < point_count; i++) {
-// 		vertices[i * 6 + 0] = points[i].x;
-// 		vertices[i * 6 + 1] = points[i].y;
-// 		vertices[i * 6 + 2] = fill.r / 255.0f;
-// 		vertices[i * 6 + 3] = fill.g / 255.0f;
-// 		vertices[i * 6 + 4] = fill.b / 255.0f;
-// 		vertices[i * 6 + 5] = fill.a / 255.0f;
-// 	}
-//
-// 	glBindVertexArray(ctx->vao);
-// 	glBindBuffer(GL_ARRAY_BUFFER, ctx->vbo);
-// 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices,
-// 		     GL_DYNAMIC_DRAW);
-//
-// 	glUseProgram(ctx->shader);
-//
-// 	/* Draw filled polygon using Triangle Fan */
-// 	glDrawArrays(GL_TRIANGLE_FAN, 0, point_count);
-//
-// 	/* Draw border if width > 0 */
-// 	if (border_width > 0.0f) {
-// 		for (int i = 0; i < point_count; i++) {
-// 			vertices[i * 6 + 2] = border.r / 255.0f;
-// 			vertices[i * 6 + 3] = border.g / 255.0f;
-// 			vertices[i * 6 + 4] = border.b / 255.0f;
-// 			vertices[i * 6 + 5] = border.a / 255.0f;
-// 		}
-//
-// 		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices,
-// 			     GL_DYNAMIC_DRAW);
-//
-// 		/* NOTE
-// 		 * glLineWidth > 1.0 is not supported on all platforms
-// 		 * (e.g., Windows/macOS Core)
-// 		 */
-// 		glLineWidth(border_width);
-// 		glDrawArrays(GL_LINE_LOOP, 0, point_count);
-// 	}
-//
-// 	glBindVertexArray(0);
-// }
-
 void
 draw_poly(libgfx *ctx, Vec2 center, int sides, float radius, float rotation, Color fill, Color border, float border_width)
 {
