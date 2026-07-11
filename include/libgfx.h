@@ -70,6 +70,6 @@ void gfx_present(libgfx *ctx);
 void draw_pixel(libgfx *ctx, int x, int y, Color color);
 void draw_pixel_v(libgfx *ctx, Vec2 pos, Color color);
 void draw_line(libgfx *ctx, int start_x, int start_y, int end_x, int end_y,
-	       Color color);
+    Color color);
 void draw_line_v(libgfx *ctx, Vec2 start, Vec2 end, Color color);
 void draw_poly(libgfx *ctx, Vec2 center, int sides, float radius, float rotation, Color fill, Color border, float border_width);

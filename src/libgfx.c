@@ -106,7 +106,7 @@ libgfx
 
 	/* Create window */
 	GLFWwindow *window = glfwCreateWindow(width, height, title, NULL,
-			     NULL);
+	    NULL);
 	if (!window) {
 		fprintf(stderr, "Failed to create GLFW window\n");
 		glfwTerminate();
@@ -171,7 +171,7 @@ libgfx
 
 	glUseProgram(ctx->shader);
 	glUniformMatrix4fv(glGetUniformLocation(ctx->shader, "projection"), 1,
-			   GL_FALSE, ortho);
+	    GL_FALSE, ortho);
 
 	/* setup vao and vbo */
 	glGenVertexArrays(1, &ctx->vao);
@@ -181,10 +181,10 @@ libgfx
 	glBindBuffer(GL_ARRAY_BUFFER, ctx->vbo);
 
 	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 6 * sizeof(float),
-			      (void *)0);
+	    (void *)0);
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 6 * sizeof(float),
-			      (void *)(2 * sizeof(float)));
+	    (void *)(2 * sizeof(float)));
 	glEnableVertexAttribArray(1);
 
 	glBindVertexArray(0);
@@ -226,7 +226,7 @@ gfx_clear(libgfx *ctx, Color background)
 	if (!ctx) return;
 
 	glClearColor(background.r / 255.0f, background.g / 255.0f,
-		     background.b / 255.0f, background.a / 255.0f);
+	    background.b / 255.0f, background.a / 255.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
@@ -250,7 +250,8 @@ draw_pixel(libgfx *ctx, int x, int y, Color color)
 	};
 	glBindVertexArray(ctx->vao);
 	glBindBuffer(GL_ARRAY_BUFFER, ctx->vao);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_DYNAMIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices,
+	    GL_DYNAMIC_DRAW);
 	glDrawArrays(GL_POINTS, 0, 1);
 	glBindVertexArray(0);
 }
@@ -262,7 +263,8 @@ draw_pixel_v(libgfx *ctx, Vec2 pos, Color color)
 }
 
 void
-draw_line(libgfx *ctx, int start_x, int start_y, int end_x, int end_y, Color color)
+draw_line(libgfx *ctx, int start_x, int start_y, int end_x, int end_y,
+    Color color)
 {
 	if (!ctx) return;
 	float vertices[12] = {
@@ -275,7 +277,8 @@ draw_line(libgfx *ctx, int start_x, int start_y, int end_x, int end_y, Color col
 	};
 	glBindVertexArray(ctx->vao);
 	glBindBuffer(GL_ARRAY_BUFFER, ctx->vbo);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_DYNAMIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices,
+	    GL_DYNAMIC_DRAW);
 	glDrawArrays(GL_LINES, 0, 2);
 	glBindVertexArray(0);
 }
@@ -287,7 +290,8 @@ draw_line_v(libgfx *ctx, Vec2 start, Vec2 end, Color color)
 }
 
 void
-draw_poly(libgfx *ctx, Vec2 center, int sides, float radius, float rotation, Color fill, Color border, float border_width)
+draw_poly(libgfx *ctx, Vec2 center, int sides, float radius, float rotation,
+    Color fill, Color border, float border_width)
 {
 	if (!ctx || sides < 3) return;
 	if (sides > 1000) sides = 1000;
@@ -315,13 +319,15 @@ draw_poly(libgfx *ctx, Vec2 center, int sides, float radius, float rotation, Col
 		}
 		glBindVertexArray(ctx->vao);
 		glBindBuffer(GL_ARRAY_BUFFER, ctx->vbo);
-		glBufferData(GL_ARRAY_BUFFER, sides * 6 * sizeof(float), vertices, GL_DYNAMIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, sides * 6 * sizeof(float),
+		    vertices, GL_DYNAMIC_DRAW);
 		glDrawArrays(GL_TRIANGLE_FAN, 0, sides);
 	}
 
 	/* Draw Border */
 	if (border_width > 0.0f && border.a > 0) {
-		float vertices[1000 * 36]; /* 6 vertices per segment, 6 floats per vertex */
+		/* 6 vertices per segment, 6 floats per vertex */
+		float vertices[1000 * 36];
 		int v_idx = 0;
 		float half_thick = border_width / 2.0f;
 		float r = border.r / 255.0f;
@@ -341,29 +347,54 @@ draw_poly(libgfx *ctx, Vec2 center, int sides, float radius, float rotation, Col
 			Vec2 n = { -d.y / len, d.x / len };
 
 			/* Triangle 1 */
-			vertices[v_idx++] = p1.x + n.x * half_thick; vertices[v_idx++] = p1.y + n.y * half_thick;
-			vertices[v_idx++] = r; vertices[v_idx++] = g; vertices[v_idx++] = b; vertices[v_idx++] = a;
+			vertices[v_idx++] = p1.x + n.x * half_thick;
+			vertices[v_idx++] = p1.y + n.y * half_thick;
+			vertices[v_idx++] = r;
+			vertices[v_idx++] = g;
+			vertices[v_idx++] = b;
+			vertices[v_idx++] = a;
 
-			vertices[v_idx++] = p1.x - n.x * half_thick; vertices[v_idx++] = p1.y - n.y * half_thick;
-			vertices[v_idx++] = r; vertices[v_idx++] = g; vertices[v_idx++] = b; vertices[v_idx++] = a;
+			vertices[v_idx++] = p1.x - n.x * half_thick;
+			vertices[v_idx++] = p1.y - n.y * half_thick;
+			vertices[v_idx++] = r;
+			vertices[v_idx++] = g;
+			vertices[v_idx++] = b;
+			vertices[v_idx++] = a;
 
-			vertices[v_idx++] = p2.x + n.x * half_thick; vertices[v_idx++] = p2.y + n.y * half_thick;
-			vertices[v_idx++] = r; vertices[v_idx++] = g; vertices[v_idx++] = b; vertices[v_idx++] = a;
+			vertices[v_idx++] = p2.x + n.x * half_thick;
+			vertices[v_idx++] = p2.y + n.y * half_thick;
+			vertices[v_idx++] = r;
+			vertices[v_idx++] = g;
+			vertices[v_idx++] = b;
+			vertices[v_idx++] = a;
 
 			/* Triangle 2 */
-			vertices[v_idx++] = p1.x - n.x * half_thick; vertices[v_idx++] = p1.y - n.y * half_thick;
-			vertices[v_idx++] = r; vertices[v_idx++] = g; vertices[v_idx++] = b; vertices[v_idx++] = a;
+			vertices[v_idx++] = p1.x - n.x * half_thick;
+			vertices[v_idx++] = p1.y - n.y * half_thick;
+			vertices[v_idx++] = r;
+			vertices[v_idx++] = g;
+			vertices[v_idx++] = b;
+			vertices[v_idx++] = a;
 
-			vertices[v_idx++] = p2.x - n.x * half_thick; vertices[v_idx++] = p2.y - n.y * half_thick;
-			vertices[v_idx++] = r; vertices[v_idx++] = g; vertices[v_idx++] = b; vertices[v_idx++] = a;
+			vertices[v_idx++] = p2.x - n.x * half_thick;
+			vertices[v_idx++] = p2.y - n.y * half_thick;
+			vertices[v_idx++] = r;
+			vertices[v_idx++] = g;
+			vertices[v_idx++] = b;
+			vertices[v_idx++] = a;
 
-			vertices[v_idx++] = p2.x + n.x * half_thick; vertices[v_idx++] = p2.y + n.y * half_thick;
-			vertices[v_idx++] = r; vertices[v_idx++] = g; vertices[v_idx++] = b; vertices[v_idx++] = a;
+			vertices[v_idx++] = p2.x + n.x * half_thick;
+			vertices[v_idx++] = p2.y + n.y * half_thick;
+			vertices[v_idx++] = r;
+			vertices[v_idx++] = g;
+			vertices[v_idx++] = b;
+			vertices[v_idx++] = a;
 		}
 
 		glBindVertexArray(ctx->vao);
 		glBindBuffer(GL_ARRAY_BUFFER, ctx->vbo);
-		glBufferData(GL_ARRAY_BUFFER, v_idx * sizeof(float), vertices, GL_DYNAMIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, v_idx * sizeof(float), vertices,
+		    GL_DYNAMIC_DRAW);
 		glDrawArrays(GL_TRIANGLES, 0, v_idx / 6);
 	}
 
