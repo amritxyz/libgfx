@@ -16,7 +16,7 @@ typedef struct {
 	int index_count;
 } mesh_t;
 
-shader_program_t *shader_create(const char *vert_src, const char *frag_src);
+shader_program_t shader_create(const char *vert_src, const char *frag_src);
 void shader_use(shader_program_t *shader);
 void shader_destroy(shader_program_t *shader);
 

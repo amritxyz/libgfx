@@ -1,6 +1,6 @@
 UNAME_S := $(shell uname -s)
 CC = gcc
-CFLAGS = -Wall -Wextra -std=c99 -Iinclude -fPIC
+CFLAGS = -Wall -Wextra -std=c99 -Iinclude -Iglad/include -fPIC
 LDFLAGS = -lm
 
 ifeq ($(UNAME_S), Linux)
@@ -25,9 +25,9 @@ endif
 SRCDIR = src
 OBJDIR = obj
 INCDIR = include
-SOURCES = $(wildcard $(SRCDIR)/*.c)
+SOURCES = $(wildcard $(SRCDIR)/*.c) glad/src/gl.c
 HEADERS = $(wildcard $(INCDIR)/*.h)
-OBJECTS = $(SOURCES:$(SRCDIR)/%.c=$(OBJDIR)/%.o)
+OBJECTS = $(SOURCES:.c=.o)
 TARGET = libgfx.$(SO_EXT)
 DEMO = demo
 
@@ -36,7 +36,7 @@ all: $(OBJDIR) $(TARGET)
 $(OBJDIR):
 	mkdir -p $(OBJDIR)
 
-$(OBJDIR)/%.o: $(SRCDIR)/%.c $(HEADERS) | $(OBJDIR)
+%.o: %.c $(HEADERS)
 	$(CC) $(CFLAGS) -c $< -o $@
 
 $(TARGET): $(OBJECTS)
@@ -48,7 +48,7 @@ $(DEMO): $(TARGET) examples/demo.c $(HEADERS)
 example: $(DEMO)
 
 clean:
-	rm -rf $(OBJDIR) $(TARGET) $(DEMO)
+	rm -rf $(OBJDIR) $(TARGET) $(DEMO) glad/src/gl.o src/*.o
 
 run: $(DEMO)
 	LD_LIBRARY_PATH=. ./$(DEMO)

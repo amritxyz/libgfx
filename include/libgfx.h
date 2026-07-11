@@ -3,13 +3,14 @@
 
 #include <stdbool.h>
 
-#define COLOR_TO_FLOAT(c) { \
+#define COLOR_TO_FLOAT(c) (float[4]) { \
 	(c).r / 255.0f, \
 	(c).g / 255.0f, \
 	(c).b / 255.0f, \
 	(c).a / 255.0f, \
 }
 
+#define TRANS	(Color){ 0 }
 #define BLACK	(Color){ 0, 0, 0, 255 }
 #define BLANK	(Color){ 0, 0, 0, 0 }
 #define BLUE	(Color){ 0, 0, 255, 255 }
@@ -54,10 +55,7 @@ typedef struct {
 } Rect;
 
 typedef struct {
-	float m0, m4, m8,  m12;
-	float m1, m5, m9,  m13;
-	float m2, m6, m10, m14;
-	float m3, m7, m11, m15;
+	float m[16];
 } Mat4;
 
 typedef struct libgfx libgfx;
@@ -68,18 +66,10 @@ bool gfx_is_running(libgfx *ctx);
 void gfx_clear(libgfx *ctx, Color background);
 void gfx_present(libgfx *ctx);
 
-/* Shaders */
-void draw_triangle(libgfx *ctx, Vec2 p1, Vec2 p2, Vec3 p3,
-			    Color fill, Color border, float border_width);
-
-void draw_rectangle(libgfx *ctx, Vec2 pos, float width, float height,
-			     Color fill, Color border, float border_width);
-
-void draw_circle(libgfx *ctx, Vec2 center, float radius,
-			  Color fill, Color border, float border_width);
-
-void draw_polygon(libgfx *ctx, Vec2 *points, int point_count,
-			  Color fill, Color border, float border_width);
-
-Color color_create(float r, float g, float b, float a);
-Vec2 vec2_create(float x, float y);
+/* basic shape drawing functions */
+void draw_pixel(libgfx *ctx, int x, int y, Color color);
+void draw_pixel_v(libgfx *ctx, Vec2 pos, Color color);
+void draw_line(libgfx *ctx, int start_x, int start_y, int end_x, int end_y,
+	       Color color);
+void draw_line_v(libgfx *ctx, Vec2 start, Vec2 end, Color color);
+void draw_poly(libgfx *ctx, Vec2 center, int sides, float radius, float rotation, Color fill, Color border, float border_width);
