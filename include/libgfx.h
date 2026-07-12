@@ -3,6 +3,8 @@
 
 #include <stdbool.h>
 
+#include <GLFW/glfw3.h>
+
 #define COLOR_TO_FLOAT(c) (float[4]) { \
 	(c).r / 255.0f, \
 	(c).g / 255.0f, \
@@ -60,7 +62,7 @@ typedef struct {
 
 typedef struct libgfx libgfx;
 
-libgfx *gfx_init(int width, int height, const char *file);
+libgfx *gfx_init(int width, int height, const char *title);
 void gfx_terminate(libgfx *ctx);
 bool gfx_is_running(libgfx *ctx);
 void gfx_clear(libgfx *ctx, Color background);
@@ -70,6 +72,20 @@ void gfx_present(libgfx *ctx);
 void draw_pixel(libgfx *ctx, int x, int y, Color color);
 void draw_pixel_v(libgfx *ctx, Vec2 pos, Color color);
 void draw_line(libgfx *ctx, int start_x, int start_y, int end_x, int end_y,
-    Color color);
+	       Color color);
 void draw_line_v(libgfx *ctx, Vec2 start, Vec2 end, Color color);
-void draw_poly(libgfx *ctx, Vec2 center, int sides, float radius, float rotation, Color fill, Color border, float border_width);
+void draw_poly(libgfx *ctx, Vec2 center, int sides, float radius,
+	       float rotation, Color fill, Color border, float border_width);
+
+/* keyboard functions */
+typedef void (*gfx_key_callback)(libgfx *ctx, int key, int scancode, int action,
+	      int mods);
+void gfx_set_key_callback(libgfx *ctx, gfx_key_callback callback);
+void gfx_request_close(libgfx *ctx);
+
+/* input state functions */
+bool gfx_is_key_down(libgfx *ctx, int key);
+bool gfx_is_key_up(libgfx *ctx, int key);
+bool gfx_is_key_pressed(libgfx *ctx, int key);
+bool gfx_is_key_released(libgfx *ctx, int key);
+bool gfx_is_key_pressed_repeat(libgfx *ctx, int key);

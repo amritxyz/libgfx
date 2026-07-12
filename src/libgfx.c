@@ -28,8 +28,11 @@
 #include "../include/libgfx.h"
 
 #ifndef M_PI
-#define M_PI 3.14159265358979323846
+	#define M_PI 3.14159265358979323846
 #endif /* M_PI */
+
+#define KEY_REPEAT_DELAY 0.3
+#define KEY_REPEAT_INTERVAL 0.08
 
 typedef struct libgfx {
 	GLFWwindow *window;
@@ -40,7 +43,17 @@ typedef struct libgfx {
 	GLuint shader;
 	GLuint vao;
 	GLuint vbo;
+
+	/* Input */
+	gfx_key_callback key_callback;
+	bool keys_current[GLFW_KEY_LAST + 1];
+	bool keys_previous[GLFW_KEY_LAST + 1];
+	double key_next_repeat_time[GLFW_KEY_LAST + 1];
 } libgfx;
+
+static void gfx_update_input(libgfx *ctx);
+static void glfw_key_event(GLFWwindow *window, int key, int scancode,
+			   int action, int mods);
 
 static const char *vert_src =
 	"#version 330 core\n"
@@ -86,8 +99,8 @@ compile_shader(GLenum type, const char *source)
 	return shader;
 }
 
-libgfx
-*gfx_init(int width, int height, const char *title)
+libgfx *
+gfx_init(int width, int height, const char *title)
 {
 	glfwSetErrorCallback(glfw_error_callback);
 
@@ -105,8 +118,7 @@ libgfx
 #endif
 
 	/* Create window */
-	GLFWwindow *window = glfwCreateWindow(width, height, title, NULL,
-	    NULL);
+	GLFWwindow *window = glfwCreateWindow(width, height, title, NULL, NULL);
 	if (!window) {
 		fprintf(stderr, "Failed to create GLFW window\n");
 		glfwTerminate();
@@ -138,6 +150,10 @@ libgfx
 	ctx->window = window;
 	ctx->width = width;
 	ctx->height = height;
+
+	/* Bind context to window for callbacks */
+	glfwSetWindowUserPointer(window, ctx);
+	glfwSetKeyCallback(window, glfw_key_event);
 
 	GLuint vert = compile_shader(GL_VERTEX_SHADER, vert_src);
 	GLuint frag = compile_shader(GL_FRAGMENT_SHADER, frag_src);
@@ -171,7 +187,7 @@ libgfx
 
 	glUseProgram(ctx->shader);
 	glUniformMatrix4fv(glGetUniformLocation(ctx->shader, "projection"), 1,
-	    GL_FALSE, ortho);
+			   GL_FALSE, ortho);
 
 	/* setup vao and vbo */
 	glGenVertexArrays(1, &ctx->vao);
@@ -181,10 +197,10 @@ libgfx
 	glBindBuffer(GL_ARRAY_BUFFER, ctx->vbo);
 
 	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 6 * sizeof(float),
-	    (void *)0);
+			     (void *)0);
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 6 * sizeof(float),
-	    (void *)(2 * sizeof(float)));
+			     (void *)(2 * sizeof(float)));
 	glEnableVertexAttribArray(1);
 
 	glBindVertexArray(0);
@@ -226,7 +242,7 @@ gfx_clear(libgfx *ctx, Color background)
 	if (!ctx) return;
 
 	glClearColor(background.r / 255.0f, background.g / 255.0f,
-	    background.b / 255.0f, background.a / 255.0f);
+		     background.b / 255.0f, background.a / 255.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
@@ -234,6 +250,8 @@ void
 gfx_present(libgfx *ctx)
 {
 	if (!ctx || !ctx->window) return;
+
+	gfx_update_input(ctx);
 
 	glfwSwapBuffers(ctx->window);
 	glfwPollEvents();
@@ -249,9 +267,9 @@ draw_pixel(libgfx *ctx, int x, int y, Color color)
 		color.b / 255.0f, color.a / 255.0f
 	};
 	glBindVertexArray(ctx->vao);
-	glBindBuffer(GL_ARRAY_BUFFER, ctx->vao);
+	glBindBuffer(GL_ARRAY_BUFFER, ctx->vbo); /* Fixed: was incorrectly binding ctx->vao */
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices,
-	    GL_DYNAMIC_DRAW);
+		     GL_DYNAMIC_DRAW);
 	glDrawArrays(GL_POINTS, 0, 1);
 	glBindVertexArray(0);
 }
@@ -264,7 +282,7 @@ draw_pixel_v(libgfx *ctx, Vec2 pos, Color color)
 
 void
 draw_line(libgfx *ctx, int start_x, int start_y, int end_x, int end_y,
-    Color color)
+	  Color color)
 {
 	if (!ctx) return;
 	float vertices[12] = {
@@ -278,7 +296,7 @@ draw_line(libgfx *ctx, int start_x, int start_y, int end_x, int end_y,
 	glBindVertexArray(ctx->vao);
 	glBindBuffer(GL_ARRAY_BUFFER, ctx->vbo);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices,
-	    GL_DYNAMIC_DRAW);
+		     GL_DYNAMIC_DRAW);
 	glDrawArrays(GL_LINES, 0, 2);
 	glBindVertexArray(0);
 }
@@ -291,7 +309,7 @@ draw_line_v(libgfx *ctx, Vec2 start, Vec2 end, Color color)
 
 void
 draw_poly(libgfx *ctx, Vec2 center, int sides, float radius, float rotation,
-    Color fill, Color border, float border_width)
+	  Color fill, Color border, float border_width)
 {
 	if (!ctx || sides < 3) return;
 	if (sides > 1000) sides = 1000;
@@ -320,7 +338,7 @@ draw_poly(libgfx *ctx, Vec2 center, int sides, float radius, float rotation,
 		glBindVertexArray(ctx->vao);
 		glBindBuffer(GL_ARRAY_BUFFER, ctx->vbo);
 		glBufferData(GL_ARRAY_BUFFER, sides * 6 * sizeof(float),
-		    vertices, GL_DYNAMIC_DRAW);
+			     vertices, GL_DYNAMIC_DRAW);
 		glDrawArrays(GL_TRIANGLE_FAN, 0, sides);
 	}
 
@@ -394,9 +412,99 @@ draw_poly(libgfx *ctx, Vec2 center, int sides, float radius, float rotation,
 		glBindVertexArray(ctx->vao);
 		glBindBuffer(GL_ARRAY_BUFFER, ctx->vbo);
 		glBufferData(GL_ARRAY_BUFFER, v_idx * sizeof(float), vertices,
-		    GL_DYNAMIC_DRAW);
+			     GL_DYNAMIC_DRAW);
 		glDrawArrays(GL_TRIANGLES, 0, v_idx / 6);
 	}
 
 	glBindVertexArray(0);
+}
+
+static void
+gfx_update_input(libgfx *ctx)
+{
+	memcpy(ctx->keys_previous,
+	       ctx->keys_current,
+	       sizeof(ctx->keys_current));
+
+	for (int key = 0; key <= GLFW_KEY_LAST; key++) {
+		int state = glfwGetKey(ctx->window, key);
+		ctx->keys_current[key] = (state == GLFW_PRESS);
+	}
+}
+
+static void
+glfw_key_event(GLFWwindow *window, int key, int scancode, int action,
+	       int mods)
+{
+	libgfx *ctx = glfwGetWindowUserPointer(window);
+	if (ctx && ctx->key_callback)
+		ctx->key_callback(ctx, key, scancode, action, mods);
+}
+
+void
+gfx_set_key_callback(libgfx *ctx, gfx_key_callback callback)
+{
+	if (!ctx) return;
+	ctx->key_callback = callback;
+}
+
+void
+gfx_request_close(libgfx *ctx)
+{
+	if (ctx && ctx->window)
+		glfwSetWindowShouldClose(ctx->window, GL_TRUE);
+}
+
+bool
+gfx_is_key_down(libgfx *ctx, int key)
+{
+	if (!ctx || !ctx->window || key < 0 || key > GLFW_KEY_LAST)
+		return false;
+	return ctx->keys_current[key];
+}
+
+bool
+gfx_is_key_up(libgfx *ctx, int key)
+{
+	if (!ctx || !ctx->window || key < 0 || key > GLFW_KEY_LAST)
+		return true;
+	return !ctx->keys_current[key];
+}
+
+bool
+gfx_is_key_pressed(libgfx *ctx, int key)
+{
+	if (!ctx || !ctx->window || key < 0 || key > GLFW_KEY_LAST)
+		return false;
+	return ctx->keys_current[key] && !ctx->keys_previous[key];
+}
+
+bool
+gfx_is_key_released(libgfx *ctx, int key)
+{
+	if (!ctx || !ctx->window || key < 0 || key > GLFW_KEY_LAST)
+		return false;
+	return !ctx->keys_current[key] && ctx->keys_previous[key];
+}
+
+bool
+gfx_is_key_pressed_repeat(libgfx *ctx, int key)
+{
+	if (!ctx || !ctx->window || key < 0 || key > GLFW_KEY_LAST)
+		return false;
+
+	if (ctx->keys_current[key] && !ctx->keys_previous[key]) {
+		ctx->key_next_repeat_time[key] = glfwGetTime() + KEY_REPEAT_DELAY;
+		return true;
+	}
+
+	if (ctx->keys_current[key]) {
+		double now = glfwGetTime();
+		if (now >= ctx->key_next_repeat_time[key]) {
+			ctx->key_next_repeat_time[key] = now + KEY_REPEAT_INTERVAL;
+			return true;
+		}
+	}
+
+	return false;
 }
